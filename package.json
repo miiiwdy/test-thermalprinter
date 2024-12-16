@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@point-of-sale/receipt-printer-encoder": "^3.0.2",
+    "@point-of-sale/receipt-printer-status": "^2.0.0",
+    "@point-of-sale/webbluetooth-receipt-printer": "^2.0.0"
+  }
+}
