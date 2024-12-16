@@ -30,16 +30,13 @@
                 console.log(`Found device: ${device.name}`);
                 lastUsedDevice = device;
     
-                // Connect to the device via GATT
                 const server = await device.gatt.connect();
                 console.log("Connected to the Bluetooth device");
-    
-                // Now try connecting to the receipt printer
                 console.log("Attempting to connect to receipt printer...");
-                await receiptPrinter.connect();  // Ensure this is awaited properly
+                await receiptPrinter.connect();
                 console.log("Receipt printer connected successfully");
     
-                handlePrinterConnection(device);  // Proceed with printing after connection
+                handlePrinterConnection(device); 
     
             } catch (error) {
                 console.error("Failed to connect to Bluetooth device:", error);
@@ -75,7 +72,7 @@
                         .initialize()
                         .text('The quick brown fox jumps over the lazy dog')
                         .newline()
-                        .qrcode('https://nielsleenheer.com')
+                        .qrcode('https://sneevilz.my.id')
                         .encode();
     
                     console.log("Sending data to printer...");
