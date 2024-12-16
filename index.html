@@ -1,21 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Serial Printer</title>
 </head>
+
 <body>
     <h1>Connect to Printer and Print</h1>
     <button id="connectButton">Connect to Printer</button>
-    <button id="printButton" style="display:none;">Print Data</button> 
+    <button id="printButton" style="display:none;">Print Data</button>
     <p id="status"></p>
 
     <script>
         let printerConnected = false;
 
-        // Handle the "Connect to Printer" button
-        document.getElementById("connectButton").addEventListener("click", async function() {
+        document.getElementById("connectButton").addEventListener("click", async function () {
             console.log("Attempting to connect to printer over serial...");
             document.getElementById("status").textContent = "Attempting to connect to printer...";
 
@@ -23,7 +24,7 @@
                 const response = await fetch('http://localhost:3000/connect', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ address: '66:22:C7:47:AF:10' }) 
+                    body: JSON.stringify({ address: '66:22:C7:47:AF:10' })
                 });
 
                 if (response.ok) {
@@ -39,7 +40,7 @@
             }
         });
 
-        document.getElementById("printButton").addEventListener("click", async function() {
+        document.getElementById("printButton").addEventListener("click", async function () {
             if (!printerConnected) {
                 document.getElementById("status").textContent = "No printer connected.";
                 return;
@@ -68,4 +69,5 @@
         });
     </script>
 </body>
+
 </html>
