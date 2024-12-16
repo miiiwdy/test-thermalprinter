@@ -1,100 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bluetooth Printer</title>
-    <script src="node_modules\@point-of-sale\webbluetooth-receipt-printer\dist\webbluetooth-receipt-printer.umd.js"></script>
-    <script src='node_modules\@point-of-sale\receipt-printer-status\dist\receipt-printer-status.umd.js'></script>
+    <title>Serial Printer</title>
 </head>
-
 <body>
-
-    <button onclick="handleConnectButtonClick()">Connect to Printer</button>
+    <h1>Connect to Printer and Print</h1>
+    <button id="connectButton">Connect to Printer</button>
+    <button id="printButton" style="display:none;">Print Data</button> 
     <p id="status"></p>
 
     <script>
-        const receiptPrinter = new WebBluetoothReceiptPrinter();
-        let lastUsedDevice = null;
-    
-        async function handleConnectButtonClick() {
-            console.log("Attempting to connect to RPP02N...");
-            document.getElementById("status").textContent = "Searching for printer...";
-    
+        let printerConnected = false;
+
+        // Handle the "Connect to Printer" button
+        document.getElementById("connectButton").addEventListener("click", async function() {
+            console.log("Attempting to connect to printer over serial...");
+            document.getElementById("status").textContent = "Attempting to connect to printer...";
+
             try {
-                const device = await navigator.bluetooth.requestDevice({
-                    filters: [{ name: 'RPP02N' }]
+                const response = await fetch('http://localhost:3000/connect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ address: '66:22:C7:47:AF:10' }) 
                 });
-    
-                console.log(`Found device: ${device.name}`);
-                lastUsedDevice = device;
-    
-                // Connect to the device via GATT
-                const server = await device.gatt.connect();
-                console.log("Connected to the Bluetooth device");
-    
-                // Now try connecting to the receipt printer
-                console.log("Attempting to connect to receipt printer...");
-                await receiptPrinter.connect();  // Ensure this is awaited properly
-                console.log("Receipt printer connected successfully");
-    
-                handlePrinterConnection(device);  // Proceed with printing after connection
-    
-            } catch (error) {
-                console.error("Failed to connect to Bluetooth device:", error);
-                document.getElementById("status").textContent = "Failed to connect. Please try again.";
-    
-                if (error.name === "NotFoundError") {
-                    console.log("User canceled the device selection.");
-                    document.getElementById("status").textContent = "You canceled the device selection. Please try again.";
+
+                if (response.ok) {
+                    document.getElementById("status").textContent = "Printer connected!";
+                    document.getElementById("printButton").style.display = "inline";
+                    printerConnected = true;
                 } else {
-                    console.log("Unexpected error:", error);
+                    document.getElementById("status").textContent = "Failed to connect to printer.";
                 }
-            }
-        }
-    
-        function handlePrinterConnection(device) {
-            try {
-                console.log("Handling printer connection...");
-                receiptPrinter.addEventListener('connected', (device) => {
-                    console.log(`Connected to device: ${device.name} (#${device.id})`);
-    
-                    const printerLanguage = device.language;
-                    const printerCodepageMapping = device.codepageMapping;
-                    console.log(`Printer Language: ${printerLanguage}`);
-                    console.log(`Printer Codepage Mapping: ${printerCodepageMapping}`);
-    
-                    let encoder = new ReceiptPrinterEncoder({
-                        language: printerLanguage,
-                        codepageMapping: printerCodepageMapping
-                    });
-    
-                    console.log("Encoding data for printing...");
-                    let data = encoder
-                        .initialize()
-                        .text('The quick brown fox jumps over the lazy dog')
-                        .newline()
-                        .qrcode('https://nielsleenheer.com')
-                        .encode();
-    
-                    console.log("Sending data to printer...");
-                    receiptPrinter.print(data).then(() => {
-                        console.log("Printing data...");
-                        document.getElementById("status").textContent = "Printing...";
-                    }).catch((error) => {
-                        console.error("Error printing:", error);
-                        document.getElementById("status").textContent = "Error while printing. Check the printer.";
-                    });
-                });
-            } catch (printerError) {
-                console.error("Error during printer connection or printing:", printerError);
+            } catch (error) {
+                console.error("Error connecting to printer:", error);
                 document.getElementById("status").textContent = "Error connecting to printer.";
             }
-        }
-    </script>
-    
-    
-</body>
+        });
 
+        document.getElementById("printButton").addEventListener("click", async function() {
+            if (!printerConnected) {
+                document.getElementById("status").textContent = "No printer connected.";
+                return;
+            }
+
+            console.log("Sending data to printer...");
+            document.getElementById("status").textContent = "Sending data to printer...";
+
+            try {
+                const printerData = "The quick brown fox jumps over the lazy dog";
+                const response = await fetch('http://localhost:3000/print', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: printerData })
+                });
+
+                if (response.ok) {
+                    document.getElementById("status").textContent = "Printing...";
+                } else {
+                    document.getElementById("status").textContent = "Failed to send data to printer.";
+                }
+            } catch (error) {
+                console.error("Error sending data to printer:", error);
+                document.getElementById("status").textContent = "Error sending data to printer.";
+            }
+        });
+    </script>
+</body>
 </html>
